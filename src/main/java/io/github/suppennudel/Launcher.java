@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.Properties;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -36,6 +37,8 @@ public class Launcher extends Application {
 		primaryStage.setTitle(String.format("%s - %s", name, version));
 		primaryStage.setScene(scene);
 		primaryStage.show();
+
+		primaryStage.setOnCloseRequest(event -> Platform.exit());
 	}
 
 	private static FXMLLoader createFxmlLoader(Class<? extends Initializable> controller) {
