@@ -1,23 +1,10 @@
 package io.github.suppennudel;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
-
-import org.apache.commons.io.FilenameUtils;
-
-import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -32,34 +19,34 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class MainController implements Initializable {
 
 	@FXML
-	private TableView<CsvBean> table;
+	private TableView<MtgCsvBean> table;
 
 	@FXML
-	private TableColumn<CsvBean, String> colFolderName;
+	private TableColumn<MtgCsvBean, String> colFolderName;
 	@FXML
-	private TableColumn<CsvBean, String> colQuantity;
+	private TableColumn<MtgCsvBean, String> colQuantity;
 	@FXML
-	private TableColumn<CsvBean, String> colTradeQuantity;
+	private TableColumn<MtgCsvBean, String> colTradeQuantity;
 	@FXML
-	private TableColumn<CsvBean, String> colCardName;
+	private TableColumn<MtgCsvBean, String> colCardName;
 	@FXML
-	private TableColumn<CsvBean, String> colSetCode;
+	private TableColumn<MtgCsvBean, String> colSetCode;
 	@FXML
-	private TableColumn<CsvBean, String> colSetName;
+	private TableColumn<MtgCsvBean, String> colSetName;
 	@FXML
-	private TableColumn<CsvBean, String> colCardNumber;
+	private TableColumn<MtgCsvBean, String> colCardNumber;
 	@FXML
-	private TableColumn<CsvBean, String> colCondition;
+	private TableColumn<MtgCsvBean, String> colCondition;
 	@FXML
-	private TableColumn<CsvBean, String> colPrinting;
+	private TableColumn<MtgCsvBean, String> colPrinting;
 	@FXML
-	private TableColumn<CsvBean, String> colLanguage;
+	private TableColumn<MtgCsvBean, String> colLanguage;
 	@FXML
-	private TableColumn<CsvBean, String> colPriceBought;
+	private TableColumn<MtgCsvBean, String> colPriceBought;
 	@FXML
-	private TableColumn<CsvBean, String> colDateBought;
+	private TableColumn<MtgCsvBean, String> colDateBought;
 
-	private ObservableList<CsvBean> tableData = FXCollections.observableArrayList();
+	private ObservableList<MtgCsvBean> tableData = FXCollections.observableArrayList();
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
@@ -97,7 +84,7 @@ public class MainController implements Initializable {
 		tableData.clear();
 		chosenFiles.forEach(file -> {
 			Preferences.userRoot().put(LAST_OPENFILE_DIR, file.getParent());
-			tableData.addAll(readCsv(file));
+			tableData.addAll(CsvHandler.readCsv(file, null));
 		});
 	}
 
@@ -114,45 +101,7 @@ public class MainController implements Initializable {
 		if (chosenFile == null) {
 			return;
 		}
-		writeCsv(chosenFile, tableData);
-	}
-
-	private void writeCsv(File file, List<CsvBean> beans) {
-		try (Writer writer = new FileWriter(file)) {
-			StatefulBeanToCsv<CsvBean> beanToCsv = new StatefulBeanToCsvBuilder<CsvBean>(writer)
-					.withProfile(CsvBean.PROFILE_DRAGON_SHIELD)
-					.withApplyQuotesToAll(false).build();
-			beanToCsv.write(beans);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (CsvDataTypeMismatchException e) {
-			e.printStackTrace();
-		} catch (CsvRequiredFieldEmptyException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private List<CsvBean> readCsv(File file) {
-		for (String profile : CsvBean.ALL_PROFILES) {
-			try (FileReader reader = new FileReader(file)) {
-				List<CsvBean> beans = new CsvToBeanBuilder<CsvBean>(reader).withType(CsvBean.class).withProfile(profile)
-						.build().parse();
-				beans.forEach(bean -> {
-					if (bean.getFolderName() == null) {
-						String baseName = FilenameUtils.getBaseName(file.getName());
-						bean.setFolderName(baseName);
-					}
-				});
-				return beans;
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (RuntimeException e) {
-				System.err.println(String.format("Profile '%s' didn't match for file %s", profile, file));
-			}
-		}
-		return null;
+		CsvHandler.writeCsv(chosenFile, tableData, CsvProfile.DRAGON_SHIELD);
 	}
 
 }
